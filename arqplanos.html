@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArQPlanos — Arquitectura & Ingeniería</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Bebas+Neue&family=DM+Mono:wght@300;400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --rojo:       #C0272D;
+    --granate:    #8B1A1A;
+    --granate-d:  #5A0F0F;
+    --beige:      #E8D5C4;
+    --beige-m:    #C9A98A;
+    --negro:      #080808;
+    --negro-s:    #111111;
+    --negro-c:    #1A1A1A;
+    --gris-o:     #2A2A2A;
+    --gris-m:     #555;
+    --gris-c:     #888;
+    --blanco:     #F5F0EB;
+    --font-serif: 'Cormorant Garamond', serif;
+    --font-disp:  'Bebas Neue', cursive;
+    --font-mono:  'DM Mono', monospace;
+    --font-sans:  'Montserrat', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--negro);
+    color: var(--blanco);
+    font-family: var(--font-sans);
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── CURSOR PERSONALIZADO ── */
+  .cursor {
+    position: fixed; width: 10px; height: 10px;
+    background: var(--rojo); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: transform 0.1s, width 0.3s, height 0.3s, background 0.3s;
+  }
+  .cursor-ring {
+    position: fixed; width: 36px; height: 36px;
+    border: 1px solid rgba(192,39,45,0.5); border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%,-50%);
+    transition: transform 0.18s ease, width 0.3s, height 0.3s, border-color 0.3s;
+  }
+  body:hover .cursor { opacity: 1; }
+
+  /* ── NAVEGACIÓN ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px 60px;
+    transition: background 0.5s, padding 0.4s;
+  }
+  nav.scrolled {
+    background: rgba(8,8,8,0.96);
+    backdrop-filter: blur(12px);
+    padding: 18px 60px;
+    border-bottom: 1px solid rgba(192,39,45,0.15);
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 14px;
+    text-decoration: none;
+  }
+  .nav-logo-img {
+    height: 48px; width: auto;
+    filter: brightness(0) invert(1);
+    transition: filter 0.3s;
+  }
+  nav.scrolled .nav-logo-img { height: 40px; }
+  .nav-logo-text {
+    font-family: var(--font-disp);
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: var(--blanco);
+  }
+  .nav-logo-text span { color: var(--rojo); }
+  .nav-links {
+    display: flex; gap: 40px; list-style: none;
+  }
+  .nav-links a {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--gris-c);
+    text-decoration: none;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px; background: var(--rojo);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover { color: var(--blanco); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-cta {
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--blanco);
+    background: transparent;
+    border: 1px solid var(--rojo);
+    padding: 10px 24px;
+    text-decoration: none;
+    transition: background 0.3s, color 0.3s;
+  }
+  .nav-cta:hover { background: var(--rojo); }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 0 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: 
+      repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(192,39,45,0.04) 79px, rgba(192,39,45,0.04) 80px),
+      repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(192,39,45,0.04) 79px, rgba(192,39,45,0.04) 80px),
+      linear-gradient(160deg, #0D0D0D 0%, #080808 50%, #120808 100%);
+  }
+  .hero-noise {
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    opacity: 0.4;
+  }
+  .hero-line-v {
+    position: absolute; top: 0; left: 200px; width: 1px; height: 100%;
+    background: linear-gradient(to bottom, transparent, rgba(192,39,45,0.3) 30%, rgba(192,39,45,0.3) 70%, transparent);
+  }
+  .hero-coords {
+    position: absolute; top: 50%; left: 210px;
+    transform: translateY(-50%);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgba(192,39,45,0.4);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+  .hero-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--rojo);
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    position: relative;
+    display: flex; align-items: center; gap: 16px;
+    opacity: 0; animation: fadeUp 1s 0.3s forwards;
+  }
+  .hero-tag::before {
+    content: ''; display: inline-block;
+    width: 40px; height: 1px; background: var(--rojo);
+  }
+  .hero-title {
+    font-family: var(--font-disp);
+    font-size: clamp(80px, 12vw, 160px);
+    line-height: 0.9;
+    letter-spacing: -2px;
+    color: var(--blanco);
+    position: relative;
+    opacity: 0; animation: fadeUp 1s 0.5s forwards;
+  }
+  .hero-title .red { color: var(--rojo); }
+  .hero-title .outline {
+    -webkit-text-stroke: 1px var(--beige-m);
+    color: transparent;
+  }
+  .hero-sub {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--beige-m);
+    margin-top: 32px;
+    max-width: 520px;
+    line-height: 1.5;
+    opacity: 0; animation: fadeUp 1s 0.7s forwards;
+  }
+  .hero-cta-row {
+    display: flex; align-items: center; gap: 40px;
+    margin-top: 52px;
+    opacity: 0; animation: fadeUp 1s 0.9s forwards;
+  }
+  .btn-primary {
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--negro);
+    background: var(--rojo);
+    border: none;
+    padding: 16px 40px;
+    text-decoration: none;
+    transition: background 0.3s, letter-spacing 0.3s;
+    display: inline-block;
+  }
+  .btn-primary:hover { background: var(--granate); letter-spacing: 4px; }
+  .btn-ghost {
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--gris-c);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 12px;
+    transition: color 0.3s, gap 0.3s;
+  }
+  .btn-ghost::after {
+    content: '→'; color: var(--rojo); transition: transform 0.3s;
+  }
+  .btn-ghost:hover { color: var(--blanco); gap: 20px; }
+  .hero-scroll-hint {
+    position: absolute; bottom: 36px; right: 60px;
+    font-family: var(--font-mono); font-size: 9px;
+    letter-spacing: 2px; color: var(--gris-m);
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 12px;
+    opacity: 0; animation: fadeIn 1s 1.4s forwards;
+  }
+  .hero-scroll-hint::before {
+    content: ''; display: block; width: 1px; height: 48px;
+    background: linear-gradient(to bottom, transparent, var(--rojo));
+    animation: scrollLine 2s 1.5s ease-in-out infinite;
+  }
+  @keyframes scrollLine {
+    0%,100% { transform: scaleY(1); opacity: 1; }
+    50% { transform: scaleY(0.5); opacity: 0.4; }
+  }
+  .hero-skyline {
+    position: absolute; bottom: 0; right: 0;
+    width: 45%; opacity: 0.04;
+  }
+
+  /* ── SECCIÓN ARQUITECTO ── */
+  #arquitecto {
+    min-height: 100vh;
+    display: grid; grid-template-columns: 1fr 1fr;
+    position: relative;
+    overflow: hidden;
+  }
+  .arq-left {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    padding: 100px 60px;
+    background: var(--negro-s);
+  }
+  .arq-left::after {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 1px; height: 100%;
+    background: linear-gradient(to bottom, transparent, var(--rojo) 30%, var(--rojo) 70%, transparent);
+    opacity: 0.3;
+  }
+  .photo-frame {
+    position: relative;
+    width: 100%; max-width: 400px; aspect-ratio: 3/4;
+  }
+  .photo-placeholder {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, #1a1a1a 0%, #111 50%, #0d0d0d 100%);
+    border: 1px solid rgba(192,39,45,0.2);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.5s;
+  }
+  .photo-placeholder:hover { border-color: rgba(192,39,45,0.5); }
+  .photo-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(192,39,45,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(192,39,45,0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .photo-cross {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .photo-cross::before, .photo-cross::after {
+    content: ''; position: absolute; background: rgba(192,39,45,0.08);
+  }
+  .photo-cross::before { width: 1px; height: 60%; }
+  .photo-cross::after { width: 60%; height: 1px; }
+  .photo-icon {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+  .photo-icon svg { opacity: 0.2; }
+  .photo-label {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 3px;
+    color: rgba(192,39,45,0.4);
+    text-transform: uppercase;
+    text-align: center;
+  }
+  /* Corner decorators */
+  .photo-corner {
+    position: absolute; width: 24px; height: 24px;
+    border-color: var(--rojo); border-style: solid; opacity: 0.4;
+  }
+  .photo-corner.tl { top: 12px; left: 12px; border-width: 1px 0 0 1px; }
+  .photo-corner.tr { top: 12px; right: 12px; border-width: 1px 1px 0 0; }
+  .photo-corner.bl { bottom: 12px; left: 12px; border-width: 0 0 1px 1px; }
+  .photo-corner.br { bottom: 12px; right: 12px; border-width: 0 1px 1px 0; }
+  /* Overlay hover */
+  .photo-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(139,26,26,0.15) 0%, transparent 60%);
+    opacity: 0; transition: opacity 0.5s;
+  }
+  .photo-placeholder:hover .photo-overlay { opacity: 1; }
+
+  .photo-badge {
+    position: absolute; bottom: -20px; right: -20px;
+    width: 100px; height: 100px;
+    border: 1px solid rgba(192,39,45,0.3);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: var(--negro);
+    gap: 2px;
+  }
+  .photo-badge-num {
+    font-family: var(--font-disp);
+    font-size: 32px; color: var(--rojo); line-height: 1;
+  }
+  .photo-badge-txt {
+    font-family: var(--font-mono);
+    font-size: 8px; letter-spacing: 1.5px;
+    color: var(--gris-c); text-transform: uppercase;
+    text-align: center;
+  }
+  .arq-right {
+    padding: 100px 80px 100px 80px;
+    display: flex; flex-direction: column; justify-content: center;
+    position: relative;
+  }
+  .arq-label {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 3px;
+    color: var(--rojo); text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .arq-label::before {
+    content: ''; width: 30px; height: 1px; background: var(--rojo);
+  }
+  .arq-name {
+    font-family: var(--font-serif);
+    font-size: clamp(40px, 5vw, 68px);
+    font-weight: 300;
+    line-height: 1.05;
+    color: var(--blanco);
+    margin-bottom: 8px;
+  }
+  .arq-name em {
+    font-style: italic;
+    color: var(--beige-m);
+  }
+  .arq-title-line {
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 2.5px;
+    color: var(--gris-c); text-transform: uppercase;
+    margin-bottom: 36px;
+  }
+  .arq-divider {
+    width: 60px; height: 1px;
+    background: linear-gradient(to right, var(--rojo), transparent);
+    margin-bottom: 32px;
+  }
+  .arq-bio {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    line-height: 1.75;
+    color: rgba(245,240,235,0.75);
+    margin-bottom: 48px;
+    max-width: 480px;
+  }
+  .arq-stats {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 2px; margin-bottom: 48px;
+  }
+  .stat-item {
+    padding: 20px 24px;
+    background: var(--negro-c);
+    border: 1px solid rgba(192,39,45,0.08);
+    transition: border-color 0.3s, background 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .stat-item::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0; width: 2px;
+    background: var(--rojo); transform: scaleY(0);
+    transform-origin: bottom; transition: transform 0.4s;
+  }
+  .stat-item:hover { border-color: rgba(192,39,45,0.25); background: #1a1a1a; }
+  .stat-item:hover::before { transform: scaleY(1); }
+  .stat-num {
+    font-family: var(--font-disp);
+    font-size: 38px; color: var(--rojo);
+    line-height: 1; margin-bottom: 6px;
+  }
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 2px;
+    color: var(--gris-c); text-transform: uppercase;
+  }
+  .arq-quote {
+    border-left: 2px solid var(--rojo);
+    padding-left: 24px;
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--beige-m);
+    line-height: 1.5;
+  }
+
+  /* ── PORTAFOLIO ── */
+  #portafolio {
+    padding: 120px 60px;
+    background: var(--negro);
+    position: relative;
+  }
+  .section-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 80px;
+  }
+  .section-tag {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 3px;
+    color: var(--rojo); text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .section-tag::before { content: ''; width: 30px; height: 1px; background: var(--rojo); }
+  .section-title {
+    font-family: var(--font-disp);
+    font-size: clamp(48px, 6vw, 88px);
+    line-height: 0.9; color: var(--blanco);
+    letter-spacing: -1px;
+  }
+  .section-title .outline {
+    -webkit-text-stroke: 1px rgba(245,240,235,0.2);
+    color: transparent;
+  }
+  .section-count {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 2px;
+    color: var(--gris-m); text-transform: uppercase;
+    padding-bottom: 8px;
+  }
+  /* Layout editorial portafolio */
+  .portfolio-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    gap: 2px;
+  }
+  .proj-card {
+    position: relative; overflow: hidden;
+    background: var(--negro-c);
+    cursor: none;
+  }
+  .proj-card.featured {
+    grid-column: span 2;
+    height: 520px;
+  }
+  .proj-card:not(.featured) { height: 360px; }
+  .proj-img {
+    width: 100%; height: 100%;
+    background: var(--negro-c);
+    position: relative;
+    transition: transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+  .proj-card:hover .proj-img { transform: scale(1.05); }
+  .proj-placeholder {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .proj-placeholder-bg {
+    position: absolute; inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(192,39,45,0.05) 39px, rgba(192,39,45,0.05) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(192,39,45,0.05) 39px, rgba(192,39,45,0.05) 40px);
+  }
+  .proj-ph-number {
+    font-family: var(--font-disp);
+    font-size: 80px; color: rgba(192,39,45,0.08);
+    position: absolute; bottom: 20px; right: 30px;
+    line-height: 1;
+  }
+  .proj-ph-icon {
+    position: relative; z-index: 1;
+    opacity: 0.12;
+  }
+  .proj-ph-label {
+    position: relative; z-index: 1;
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 2.5px; color: rgba(192,39,45,0.35);
+    text-transform: uppercase; margin-top: 16px;
+  }
+  .proj-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(8,8,8,0.95) 0%, rgba(8,8,8,0.4) 50%, transparent 100%);
+    transition: background 0.5s;
+  }
+  .proj-card:hover .proj-overlay {
+    background: linear-gradient(to top, rgba(8,8,8,0.98) 0%, rgba(8,8,8,0.6) 60%, rgba(139,26,26,0.15) 100%);
+  }
+  .proj-info {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 40px 40px 36px;
+    transform: translateY(0);
+    transition: padding 0.4s;
+  }
+  .proj-card:hover .proj-info { padding-bottom: 44px; }
+  .proj-meta {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 12px;
+  }
+  .proj-type {
+    font-family: var(--font-mono);
+    font-size: 9px; letter-spacing: 2px;
+    color: var(--rojo); text-transform: uppercase;
+  }
+  .proj-sep { width: 1px; height: 10px; background: rgba(192,39,45,0.4); }
+  .proj-year {
+    font-family: var(--font-mono);
+    font-size: 9px; letter-spacing: 1px; color: var(--gris-m);
+  }
+  .proj-status {
+    font-family: var(--font-mono);
+    font-size: 8px; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid;
+  }
+  .proj-status.construido { color: var(--rojo); border-color: rgba(192,39,45,0.3); }
+  .proj-status.proceso { color: var(--beige-m); border-color: rgba(201,169,138,0.3); }
+  .proj-status.conceptual { color: var(--gris-c); border-color: rgba(136,136,136,0.3); }
+  .proj-name {
+    font-family: var(--font-serif);
+    font-size: 28px; font-weight: 400;
+    color: var(--blanco); margin-bottom: 6px; line-height: 1.1;
+  }
+  .proj-card.featured .proj-name { font-size: 40px; }
+  .proj-location {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 1.5px;
+    color: var(--gris-c); text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .proj-desc {
+    font-family: var(--font-serif);
+    font-size: 15px; font-style: italic;
+    color: rgba(245,240,235,0.55);
+    line-height: 1.6; max-width: 580px;
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.5s, opacity 0.5s;
+    opacity: 0;
+  }
+  .proj-card:hover .proj-desc { max-height: 80px; opacity: 1; }
+  .proj-arrow {
+    position: absolute; top: 36px; right: 36px;
+    width: 40px; height: 40px;
+    border: 1px solid rgba(192,39,45,0.3);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--rojo); font-size: 18px;
+    transform: rotate(-45deg) scale(0);
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .proj-card:hover .proj-arrow { transform: rotate(0deg) scale(1); }
+
+  /* ── FILOSOFÍA ── */
+  #filosofia {
+    min-height: 80vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    padding: 120px 60px;
+  }
+  .filo-bg {
+    position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(192,39,45,0.03) 59px, rgba(192,39,45,0.03) 60px),
+      repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(192,39,45,0.03) 59px, rgba(192,39,45,0.03) 60px),
+      radial-gradient(ellipse at center, #120808 0%, #080808 70%);
+  }
+  .filo-accent {
+    position: absolute;
+    width: 300px; height: 300px;
+    border: 1px solid rgba(192,39,45,0.06);
+    border-radius: 50%;
+  }
+  .filo-accent.a1 { width: 600px; height: 600px; }
+  .filo-accent.a2 { width: 900px; height: 900px; }
+  .filo-tag {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 3px;
+    color: var(--rojo); text-transform: uppercase;
+    margin-bottom: 48px;
+    position: relative; display: flex;
+    align-items: center; gap: 20px;
+  }
+  .filo-tag::before, .filo-tag::after {
+    content: ''; width: 40px; height: 1px; background: var(--rojo); opacity: 0.5;
+  }
+  .filo-quote {
+    font-family: var(--font-serif);
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 300; line-height: 1.35;
+    color: var(--blanco);
+    max-width: 900px;
+    position: relative;
+  }
+  .filo-quote em { font-style: italic; color: var(--beige-m); }
+  .filo-quote .red { color: var(--rojo); }
+  .filo-sub {
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 2px;
+    color: var(--gris-m); text-transform: uppercase;
+    margin-top: 48px;
+  }
+  .filo-divider {
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, var(--rojo), transparent);
+    margin: 48px auto 0;
+  }
+
+  /* ── SERVICIOS ── */
+  #servicios {
+    padding: 120px 60px;
+    background: var(--negro-s);
+    position: relative;
+  }
+  .servicios-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 60px;
+  }
+  .serv-card {
+    padding: 48px 36px;
+    background: var(--negro-c);
+    border: 1px solid rgba(192,39,45,0.06);
+    transition: border-color 0.4s, background 0.4s;
+    position: relative; overflow: hidden;
+  }
+  .serv-card::before {
+    content: ''; position: absolute;
+    bottom: 0; left: 0; right: 0; height: 2px;
+    background: var(--rojo);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+  .serv-card:hover { border-color: rgba(192,39,45,0.2); background: #161616; }
+  .serv-card:hover::before { transform: scaleX(1); }
+  .serv-num {
+    font-family: var(--font-disp);
+    font-size: 56px; color: rgba(192,39,45,0.1);
+    line-height: 1; margin-bottom: 24px;
+    transition: color 0.3s;
+  }
+  .serv-card:hover .serv-num { color: rgba(192,39,45,0.2); }
+  .serv-icon {
+    width: 44px; height: 44px;
+    border: 1px solid rgba(192,39,45,0.2);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 24px;
+    transition: border-color 0.3s;
+  }
+  .serv-card:hover .serv-icon { border-color: var(--rojo); }
+  .serv-name {
+    font-family: var(--font-serif);
+    font-size: 22px; font-weight: 400;
+    color: var(--blanco); margin-bottom: 16px; line-height: 1.2;
+  }
+  .serv-desc {
+    font-family: var(--font-sans);
+    font-size: 13px; font-weight: 300;
+    color: var(--gris-c); line-height: 1.75;
+  }
+
+  /* ── CONTACTO ── */
+  #contacto {
+    padding: 120px 60px;
+    background: var(--negro);
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 120px;
+    align-items: center;
+  }
+  .contact-left .section-title { margin-bottom: 28px; }
+  .contact-desc {
+    font-family: var(--font-serif);
+    font-size: 18px; font-style: italic;
+    color: rgba(245,240,235,0.6);
+    line-height: 1.7; margin-bottom: 48px;
+  }
+  .contact-data { display: flex; flex-direction: column; gap: 24px; }
+  .contact-item {
+    display: flex; align-items: flex-start; gap: 20px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(192,39,45,0.08);
+  }
+  .contact-item:last-child { border-bottom: none; }
+  .contact-item-icon {
+    width: 36px; height: 36px; flex-shrink: 0;
+    border: 1px solid rgba(192,39,45,0.2);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--rojo);
+  }
+  .contact-item-label {
+    font-family: var(--font-mono);
+    font-size: 9px; letter-spacing: 2px;
+    color: var(--gris-m); text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .contact-item-val {
+    font-family: var(--font-serif);
+    font-size: 17px; color: var(--blanco);
+  }
+  .contact-form {
+    background: var(--negro-c);
+    padding: 52px;
+    border: 1px solid rgba(192,39,45,0.1);
+  }
+  .form-group {
+    margin-bottom: 28px;
+  }
+  .form-label {
+    font-family: var(--font-mono);
+    font-size: 9px; letter-spacing: 2.5px;
+    color: var(--gris-m); text-transform: uppercase;
+    display: block; margin-bottom: 10px;
+  }
+  .form-input, .form-textarea {
+    width: 100%;
+    background: transparent;
+    border: none; border-bottom: 1px solid rgba(192,39,45,0.2);
+    padding: 12px 0;
+    font-family: var(--font-serif);
+    font-size: 16px; color: var(--blanco);
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  .form-input:focus, .form-textarea:focus { border-color: var(--rojo); }
+  .form-input::placeholder, .form-textarea::placeholder { color: rgba(136,136,136,0.4); }
+  .form-textarea { height: 100px; resize: none; }
+  .form-submit {
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--negro);
+    background: var(--rojo);
+    border: none; padding: 18px;
+    cursor: none;
+    transition: background 0.3s, letter-spacing 0.3s;
+  }
+  .form-submit:hover { background: var(--granate); letter-spacing: 5px; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--negro-s);
+    border-top: 1px solid rgba(192,39,45,0.1);
+    padding: 48px 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-logo {
+    font-family: var(--font-disp);
+    font-size: 18px; letter-spacing: 3px;
+    color: rgba(245,240,235,0.3);
+  }
+  .footer-logo span { color: rgba(192,39,45,0.5); }
+  .footer-copy {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 1.5px;
+    color: var(--gris-m);
+  }
+  .footer-links {
+    display: flex; gap: 32px; list-style: none;
+  }
+  .footer-links a {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 1.5px;
+    color: var(--gris-m); text-decoration: none;
+    transition: color 0.3s;
+  }
+  .footer-links a:hover { color: var(--rojo); }
+
+  /* ── REVEAL ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .reveal {
+    opacity: 0; transform: translateY(50px);
+    transition: opacity 0.9s cubic-bezier(0.4,0,0.2,1), transform 0.9s cubic-bezier(0.4,0,0.2,1);
+  }
+  .reveal.left { transform: translateX(-50px); }
+  .reveal.right { transform: translateX(50px); }
+  .reveal.visible { opacity: 1; transform: translate(0); }
+
+  /* Delay utilities */
+  .d1 { transition-delay: 0.1s; }
+  .d2 { transition-delay: 0.2s; }
+  .d3 { transition-delay: 0.3s; }
+  .d4 { transition-delay: 0.4s; }
+  .d5 { transition-delay: 0.5s; }
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- ══════════════ NAVEGACIÓN ══════════════ -->
+<nav id="navbar">
+  <a href="#hero" class="nav-logo">
+    <!-- Logo SVG inline replicando ArQPlanos -->
+    <svg width="52" height="40" viewBox="0 0 52 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- A grande roja -->
+      <polygon points="10,36 26,4 42,36 36,36 26,16 16,36" fill="#C0272D"/>
+      <!-- Q superpuesta -->
+      <rect x="19" y="20" width="14" height="14" fill="#8B1A1A"/>
+      <polygon points="19,20 26,14 33,20" fill="#C0272D"/>
+      <!-- punto blanco Q -->
+      <polygon points="23,28 26,24 29,28" fill="white" opacity="0.8"/>
+    </svg>
+    <div>
+      <div class="nav-logo-text">Arq<span>P</span>lanos</div>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#arquitecto">Estudio</a></li>
+    <li><a href="#portafolio">Portafolio</a></li>
+    <li><a href="#servicios">Servicios</a></li>
+    <li><a href="#contacto">Contacto</a></li>
+  </ul>
+  <a href="#contacto" class="nav-cta">Consulta gratuita</a>
+</nav>
+
+<!-- ══════════════ HERO ══════════════ -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-noise"></div>
+  <div class="hero-line-v"></div>
+  <div class="hero-coords">12°02'36"S — 77°01'42"W — LIMA, PERÚ</div>
+
+  <!-- Skyline SVG abstracto -->
+  <svg class="hero-skyline" viewBox="0 0 600 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,300 L0,180 L30,180 L30,120 L50,120 L50,100 L60,100 L60,60 L70,60 L70,100 L80,100 L80,120 L100,120 L100,140 L120,140 L120,80 L130,80 L130,50 L140,50 L140,30 L150,30 L150,50 L160,50 L160,80 L170,80 L170,140 L200,140 L200,100 L210,100 L210,40 L215,40 L215,20 L220,20 L220,40 L225,40 L225,100 L250,100 L250,120 L280,120 L280,90 L290,90 L290,60 L300,60 L300,90 L310,90 L310,120 L340,120 L340,80 L360,80 L360,120 L380,120 L380,100 L400,100 L400,140 L420,140 L420,100 L440,100 L440,80 L460,80 L460,60 L470,60 L470,80 L480,80 L480,100 L500,100 L500,120 L520,120 L520,150 L540,150 L540,180 L560,180 L560,200 L580,200 L580,220 L600,220 L600,300 Z" fill="#C0272D"/>
+  </svg>
+
+  <div style="position:relative; z-index:1;">
+    <div class="hero-tag">Estudio de Arquitectura & Ingeniería — Lima, Perú</div>
+    <h1 class="hero-title">
+      ARQ<span class="red">P</span>LA<br>
+      <span class="outline">NOS</span>
+    </h1>
+    <p class="hero-sub">Diseñamos espacios que trascienden lo ordinario. Cada proyecto, una obra que define el paisaje urbano de generaciones.</p>
+    <div class="hero-cta-row">
+      <a href="#portafolio" class="btn-primary">Ver Portafolio</a>
+      <a href="#arquitecto" class="btn-ghost">Conocer el Estudio</a>
+    </div>
+  </div>
+  <div class="hero-scroll-hint">Scroll</div>
+</section>
+
+<!-- ══════════════ PERFIL ARQUITECTO ══════════════ -->
+<section id="arquitecto">
+  <div class="arq-left">
+    <div class="photo-frame reveal left visible">
+      <div class="photo-placeholder">
+        <img src="arqui.jpg" alt="Fotografía del Arquitecto">
+        <div class="photo-overlay"></div>
+        <div class="photo-icon">
+          <svg width="48" height="40" viewBox="0 0 48 48" fill="none" stroke="#C0272D" stroke-width="1">
+            <circle cx="24" cy="18" r="9"/>
+            <path d="M6 42c0-9.9 8.1-18 18-18s18 8.1 18 18"/>
+            <line x1="0" y1="24" x2="6" y2="24" stroke-opacity="0.4"/>
+            <line x1="42" y1="24" x2="48" y2="24" stroke-opacity="0.4"/>
+          </svg>
+          <div class="photo-label">Fotografía<br>del Arquitecto</div>
+        </div>
+        <div class="photo-corner tl"></div>
+        <div class="photo-corner tr"></div>
+        <div class="photo-corner bl"></div>
+        <div class="photo-corner br"></div>
+      </div>
+      <div class="photo-badge">
+        <div class="photo-badge-num">15+</div>
+        <div class="photo-badge-txt">años de<br>trayectoria</div>
+      </div>
+    </div>
+  </div>
+  <div class="arq-right">
+
+
+  <div class="arq-right">
+    <div class="arq-label reveal d1">Arquitecto Principal</div>
+    <h2 class="arq-name reveal d2">Richard<br><em>Medina</em></h2>
+    <div class="arq-title-line reveal d3">Arquitectura · Ingeniería · Diseño Estratégico</div>
+    <div class="arq-divider reveal d3"></div>
+    <p class="arq-bio reveal d4">
+      Con más de quince años forjando el tejido urbano del Perú, Richard Medina no concibe la arquitectura como un ejercicio técnico, sino como un acto de responsabilidad cultural. Cada proyecto que sale del estudio ArQPlanos lleva consigo una ecuación precisa: rigor estructural, funcionalidad sin concesiones y una estética que responde al lugar, al tiempo y a quienes habitarán ese espacio.
+    </p>
+    <div class="arq-stats reveal d4">
+      <div class="stat-item">
+        <div class="stat-num" data-target="80">0</div>
+        <div class="stat-label">Proyectos realizados</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" data-target="15">0</div>
+        <div class="stat-label">Años de experiencia</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" data-target="12">0</div>
+        <div class="stat-label">Ciudades con presencia</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" data-target="100">0</div>
+        <div class="stat-label">% de compromiso</div>
+      </div>
+    </div>
+    <blockquote class="arq-quote reveal d5">
+      "No diseñamos estructuras.<br>
+      Diseñamos espacios que definen<br>
+      cómo las personas viven el mundo."
+    </blockquote>
+  </div>
+</section>
+
+<!-- ══════════════ PORTAFOLIO ══════════════ -->
+<section id="portafolio">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-tag">Obra seleccionada</div>
+      <h2 class="section-title">PORT<span class="outline">AFOLIO</span></h2>
+    </div>
+    <div class="section-count">06 proyectos</div>
+  </div>
+
+  <div class="portfolio-grid">
+
+    <!-- Proyecto Destacado -->
+    <div class="proj-card featured reveal">
+      <div class="proj-img">
+        <div class="proj-placeholder">
+          <div class="proj-placeholder-bg"></div>
+          <div class="proj-ph-number">01</div>
+          <svg class="proj-ph-icon" width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="#C0272D" stroke-width="0.8">
+            <rect x="8" y="20" width="48" height="36"/>
+            <polygon points="2,20 32,4 62,20"/>
+            <rect x="24" y="36" width="16" height="20"/>
+            <line x1="32" y1="4" x2="32" y2="20"/>
+          </svg>
+          <div class="proj-ph-label">Imagen del proyecto</div>
+        </div>
+      </div>
+      <div class="proj-overlay"></div>
+      <div class="proj-arrow">↗</div>
+      <div class="proj-info">
+        <div class="proj-meta">
+          <span class="proj-type">Residencial · Premium</span>
+          <span class="proj-sep"></span>
+          <span class="proj-year">2024</span>
+          <span class="proj-status construido">Construido</span>
+        </div>
+        <h3 class="proj-name">Residencia Miraflores Norte</h3>
+        <div class="proj-location">Lima, Perú</div>
+        <p class="proj-desc">Vivienda unifamiliar de tres niveles que integra la luz natural como elemento estructurante del espacio habitable, con materiales nobles y un lenguaje formal contemporáneo.</p>
+      </div>
+    </div>
+
+    <!-- Proyecto 2 -->
+    <div class="proj-card reveal d1">
+      <div class="proj-img">
+        <div class="proj-placeholder">
+          <div class="proj-placeholder-bg"></div>
+          <div class="proj-ph-number">02</div>
+          <svg class="proj-ph-icon" width="56" height="56" viewBox="0 0 64 64" fill="none" stroke="#C0272D" stroke-width="0.8">
+            <rect x="4" y="10" width="56" height="50"/>
+            <rect x="10" y="10" width="12" height="8"/>
+            <rect x="26" y="10" width="12" height="8"/>
+            <rect x="42" y="10" width="12" height="8"/>
+            <rect x="14" y="24" width="8" height="12"/>
+            <rect x="28" y="24" width="8" height="12"/>
+            <rect x="42" y="24" width="8" height="12"/>
+            <rect x="20" y="42" width="24" height="18"/>
+          </svg>
+          <div class="proj-ph-label">Imagen del proyecto</div>
+        </div>
+      </div>
+      <div class="proj-overlay"></div>
+      <div class="proj-arrow">↗</div>
+      <div class="proj-info">
+        <div class="proj-meta">
+          <span class="proj-type">Comercial</span>
+          <span class="proj-sep"></span>
+          <span class="proj-year">2023</span>
+          <span class="proj-status proceso">En proceso</span>
+        </div>
+        <h3 class="proj-name">Torre Comercial San Isidro</h3>
+        <div class="proj-location">Lima, Perú</div>
+        <p class="proj-desc">Edificio de oficinas de 12 pisos con certificación sostenible y fachada ventilada de aluminio compuesto.</p>
+      </div>
+    </div>
+
+    <!-- Proyecto 3 -->
+    <div class="proj-card reveal d2">
+      <div class="proj-img">
+        <div class="proj-placeholder">
+          <div class="proj-placeholder-bg"></div>
+          <div class="proj-ph-number">03</div>
+          <svg class="proj-ph-icon" width="56" height="56" viewBox="0 0 64 64" fill="none" stroke="#C0272D" stroke-width="0.8">
+            <path d="M8 56 L8 20 Q8 8 20 8 L44 8 Q56 8 56 20 L56 56"/>
+            <line x1="4" y1="56" x2="60" y2="56"/>
+            <rect x="20" y="28" width="10" height="16"/>
+            <rect x="34" y="28" width="10" height="16"/>
+            <rect x="20" y="14" width="8" height="8"/>
+            <rect x="36" y="14" width="8" height="8"/>
+          </svg>
+          <div class="proj-ph-label">Imagen del proyecto</div>
+        </div>
+      </div>
+      <div class="proj-overlay"></div>
+      <div class="proj-arrow">↗</div>
+      <div class="proj-info">
+        <div class="proj-meta">
+          <span class="proj-type">Multifamiliar</span>
+          <span class="proj-sep"></span>
+          <span class="proj-year">2023</span>
+          <span class="proj-status construido">Construido</span>
+        </div>
+        <h3 class="proj-name">Conjunto Residencial Barranco</h3>
+        <div class="proj-location">Lima, Perú</div>
+        <p class="proj-desc">24 unidades residenciales que dialogan con el tejido histórico del distrito más bohemio de Lima.</p>
+      </div>
+    </div>
+
+    <!-- Proyecto 4 -->
+    <div class="proj-card reveal d1">
+      <div class="proj-img">
+        <div class="proj-placeholder">
+          <div class="proj-placeholder-bg"></div>
+          <div class="proj-ph-number">04</div>
+          <svg class="proj-ph-icon" width="56" height="56" viewBox="0 0 64 64" fill="none" stroke="#C0272D" stroke-width="0.8">
+            <rect x="6" y="30" width="52" height="26"/>
+            <polygon points="2,30 32,6 62,30"/>
+            <rect x="14" y="38" width="10" height="18"/>
+            <rect x="40" y="38" width="10" height="18"/>
+            <circle cx="32" cy="20" r="4"/>
+          </svg>
+          <div class="proj-ph-label">Imagen del proyecto</div>
+        </div>
+      </div>
+      <div class="proj-overlay"></div>
+      <div class="proj-arrow">↗</div>
+      <div class="proj-info">
+        <div class="proj-meta">
+          <span class="proj-type">Institucional</span>
+          <span class="proj-sep"></span>
+          <span class="proj-year">2022</span>
+          <span class="proj-status construido">Construido</span>
+        </div>
+        <h3 class="proj-name">Centro Cultural La Molina</h3>
+        <div class="proj-location">Lima, Perú</div>
+        <p class="proj-desc">Equipamiento cultural de 2,400 m² con auditorio principal, salas de exposición y espacios flexibles de uso comunitario.</p>
+      </div>
+    </div>
+
+    <!-- Proyecto 5 -->
+    <div class="proj-card reveal d2">
+      <div class="proj-img">
+        <div class="proj-placeholder">
+          <div class="proj-placeholder-bg"></div>
+          <div class="proj-ph-number">05</div>
+          <svg class="proj-ph-icon" width="56" height="56" viewBox="0 0 64 64" fill="none" stroke="#C0272D" stroke-width="0.8">
+            <rect x="4" y="16" width="56" height="44"/>
+            <rect x="12" y="8" width="40" height="8"/>
+            <rect x="20" y="2" width="24" height="6"/>
+            <rect x="10" y="28" width="8" height="10"/>
+            <rect x="22" y="28" width="8" height="10"/>
+            <rect x="34" y="28" width="8" height="10"/>
+            <rect x="46" y="28" width="8" height="10"/>
+            <rect x="22" y="44" width="20" height="16"/>
+          </svg>
+          <div class="proj-ph-label">Imagen del proyecto</div>
+        </div>
+      </div>
+      <div class="proj-overlay"></div>
+      <div class="proj-arrow">↗</div>
+      <div class="proj-info">
+        <div class="proj-meta">
+          <span class="proj-type">Hotelero</span>
+          <span class="proj-sep"></span>
+          <span class="proj-year">2025</span>
+          <span class="proj-status proceso">En proceso</span>
+        </div>
+        <h3 class="proj-name">Boutique Hotel Cusco</h3>
+        <div class="proj-location">Cusco, Perú</div>
+        <p class="proj-desc">Hotel de 32 habitaciones que fusiona la arquitectura inca con el lenguaje contemporáneo en pleno centro histórico.</p>
+      </div>
+    </div>
+
+    <!-- Proyecto 6 -->
+    <div class="proj-card reveal d3">
+      <div class="proj-img">
+        <div class="proj-placeholder">
+          <div class="proj-placeholder-bg"></div>
+          <div class="proj-ph-number">06</div>
+          <svg class="proj-ph-icon" width="56" height="56" viewBox="0 0 64 64" fill="none" stroke="#C0272D" stroke-width="0.8">
+            <circle cx="32" cy="28" r="20"/>
+            <line x1="32" y1="8" x2="32" y2="48"/>
+            <line x1="12" y1="28" x2="52" y2="28"/>
+            <ellipse cx="32" cy="28" rx="10" ry="20"/>
+            <circle cx="32" cy="28" r="4"/>
+          </svg>
+          <div class="proj-ph-label">Imagen del proyecto</div>
+        </div>
+      </div>
+      <div class="proj-overlay"></div>
+      <div class="proj-arrow">↗</div>
+      <div class="proj-info">
+        <div class="proj-meta">
+          <span class="proj-type">Conceptual</span>
+          <span class="proj-sep"></span>
+          <span class="proj-year">2025</span>
+          <span class="proj-status conceptual">Conceptual</span>
+        </div>
+        <h3 class="proj-name">Pabellón Bienal Lima</h3>
+        <div class="proj-location">Lima, Perú</div>
+        <p class="proj-desc">Propuesta experimental para la Bienal de Arquitectura: una esfera habitable que explora los límites entre espacio público y privado.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════ FILOSOFÍA ══════════════ -->
+<section id="filosofia">
+  <div class="filo-bg"></div>
+  <div class="filo-accent a1"></div>
+  <div class="filo-accent a2"></div>
+  <div class="filo-tag reveal">Nuestra filosofía</div>
+  <blockquote class="filo-quote reveal d2">
+    No creemos en diseños genéricos.<br>
+    Cada espacio debe contar <em>una historia</em>,<br>
+    responder a <span class="red">un propósito</span><br>
+    y perdurar más allá de su tiempo.
+  </blockquote>
+  <p class="filo-sub reveal d3">Arquitectura con propósito · Ingeniería con rigor · Diseño con alma</p>
+  <div class="filo-divider reveal d4"></div>
+</section>
+
+<!-- ══════════════ SERVICIOS ══════════════ -->
+<section id="servicios">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-tag">Lo que hacemos</div>
+      <h2 class="section-title">SERVI<span class="outline">CIOS</span></h2>
+    </div>
+  </div>
+  <div class="servicios-grid">
+    <div class="serv-card reveal d1">
+      <div class="serv-num">01</div>
+      <div class="serv-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C0272D" stroke-width="1">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <h3 class="serv-name">Diseño Arquitectónico</h3>
+      <p class="serv-desc">Proyectos residenciales, comerciales e institucionales desde la conceptualización hasta el detalle constructivo. Cada diseño es único y responde al contexto.</p>
+    </div>
+    <div class="serv-card reveal d2">
+      <div class="serv-num">02</div>
+      <div class="serv-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C0272D" stroke-width="1">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/>
+          <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+      </div>
+      <h3 class="serv-name">Ingeniería Estructural</h3>
+      <p class="serv-desc">Cálculo, diseño y supervisión de sistemas estructurales. Soluciones técnicas precisas que garantizan seguridad, durabilidad y eficiencia constructiva.</p>
+    </div>
+    <div class="serv-card reveal d3">
+      <div class="serv-num">03</div>
+      <div class="serv-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C0272D" stroke-width="1">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <h3 class="serv-name">Licencias & Trámites</h3>
+      <p class="serv-desc">Gestión integral de expedientes técnicos, licencias de construcción, conformidad de obra y todos los trámites municipales necesarios.</p>
+    </div>
+    <div class="serv-card reveal d1">
+      <div class="serv-num">04</div>
+      <div class="serv-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C0272D" stroke-width="1">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+        </svg>
+      </div>
+      <h3 class="serv-name">Diseño Interior</h3>
+      <p class="serv-desc">Propuestas de interiorismo que complementan la arquitectura con criterio estético y funcional. Espacios que comunican la identidad del cliente.</p>
+    </div>
+    <div class="serv-card reveal d2">
+      <div class="serv-num">05</div>
+      <div class="serv-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C0272D" stroke-width="1">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      </div>
+      <h3 class="serv-name">Supervisión de Obra</h3>
+      <p class="serv-desc">Control y seguimiento técnico en campo. Garantizamos que cada etapa constructiva cumpla exactamente con el proyecto y las normativas vigentes.</p>
+    </div>
+    <div class="serv-card reveal d3">
+      <div class="serv-num">06</div>
+      <div class="serv-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C0272D" stroke-width="1">
+          <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+        </svg>
+      </div>
+      <h3 class="serv-name">Consultoría Integral</h3>
+      <p class="serv-desc">Asesoría técnica en etapas tempranas del proyecto. Optimización de programas, factibilidad, gestión de costos y planificación estratégica.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ CONTACTO ══════════════ -->
+<section id="contacto">
+  <div class="contact-left">
+    <div class="section-tag reveal">Hablemos</div>
+    <h2 class="section-title reveal d1">CONTA<span class="outline">CTO</span></h2>
+    <p class="contact-desc reveal d2">Cada gran proyecto comienza con una conversación. Cuéntenos su visión y construyamos juntos el espacio que merece.</p>
+    <div class="contact-data">
+      <div class="contact-item reveal d2">
+        <div class="contact-item-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C0272D" stroke-width="1.5">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+        </div>
+        <div>
+          <div class="contact-item-label">Ubicación</div>
+          <div class="contact-item-val">Lima, Perú</div>
+        </div>
+      </div>
+      <div class="contact-item reveal d3">
+        <div class="contact-item-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C0272D" stroke-width="1.5">
+            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.03 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="contact-item-label">Teléfono</div>
+          <div class="contact-item-val">+51 999 000 000</div>
+        </div>
+      </div>
+      <div class="contact-item reveal d4">
+        <div class="contact-item-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C0272D" stroke-width="1.5">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+        <div>
+          <div class="contact-item-label">Email</div>
+          <div class="contact-item-val">contacto@arqplanos.pe</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="contact-form reveal right d2">
+    <div class="form-group">
+      <label class="form-label">Nombre completo</label>
+      <input type="text" class="form-input" placeholder="Su nombre">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Correo electrónico</label>
+      <input type="email" class="form-input" placeholder="correo@ejemplo.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tipo de proyecto</label>
+      <input type="text" class="form-input" placeholder="Residencial, comercial, institucional…">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cuéntenos su visión</label>
+      <textarea class="form-textarea" placeholder="Descripción breve del proyecto…"></textarea>
+    </div>
+    <button class="form-submit">Enviar consulta →</button>
+  </div>
+</section>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer>
+  <div class="footer-logo">Arq<span>P</span>lanos</div>
+  <div class="footer-copy">© 2025 ArQPlanos · Arquitectura & Ingeniería · Lima, Perú</div>
+  <ul class="footer-links">
+    <li><a href="#arquitecto">Estudio</a></li>
+    <li><a href="#portafolio">Portafolio</a></li>
+    <li><a href="#contacto">Contacto</a></li>
+  </ul>
+</footer>
+
+<!-- ══════════════ SCRIPTS ══════════════ -->
+<script>
+  // Cursor personalizado
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+  function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+  document.querySelectorAll('a, button, .proj-card, .serv-card, .stat-item').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '6px'; cursor.style.height = '6px';
+      ring.style.width = '52px'; ring.style.height = '52px';
+      ring.style.borderColor = 'rgba(192,39,45,0.8)';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '10px'; cursor.style.height = '10px';
+      ring.style.width = '36px'; ring.style.height = '36px';
+      ring.style.borderColor = 'rgba(192,39,45,0.5)';
+    });
+  });
+
+  // Navbar scroll
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Contadores animados
+  function animCounter(el, target, suffix = '') {
+    let current = 0;
+    const step = target / 60;
+    const timer = setInterval(() => {
+      current = Math.min(current + step, target);
+      el.textContent = Math.round(current) + suffix;
+      if (current >= target) clearInterval(timer);
+    }, 20);
+  }
+  const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.stat-num[data-target]').forEach(el => {
+          const t = parseInt(el.dataset.target);
+          const suf = t === 100 ? '%' : '+';
+          animCounter(el, t, suf);
+        });
+        statsObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('.arq-stats').forEach(el => statsObserver.observe(el));
+</script>
+</body>
+</html>
